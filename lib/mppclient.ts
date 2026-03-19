@@ -57,16 +57,22 @@ export async function signVoucher(
 ): Promise<string> {
   const provider = await wallet.getEthereumProvider();
 
+  // Tempo escrow address (testnet default)
+  const escrowAddress =
+    process.env.NEXT_PUBLIC_TEMPO_ESCROW_ADDRESS ||
+    "0xe1c4d3dce17bc111181ddf716f75bae49e61a336";
+
   const typedData = {
     types: {
       EIP712Domain: [
         { name: "name", type: "string" },
         { name: "version", type: "string" },
         { name: "chainId", type: "uint256" },
+        { name: "verifyingContract", type: "address" },
       ],
       Voucher: [
         { name: "channelId", type: "bytes32" },
-        { name: "cumulativeAmount", type: "uint256" },
+        { name: "cumulativeAmount", type: "uint128" },
       ],
     },
     primaryType: "Voucher",
@@ -74,6 +80,7 @@ export async function signVoucher(
       name: "Tempo Stream Channel",
       version: "1",
       chainId: "0xa5ff", // 42431 in hex
+      verifyingContract: escrowAddress,
     },
     message: {
       channelId,

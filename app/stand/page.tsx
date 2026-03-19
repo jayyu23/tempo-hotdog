@@ -35,19 +35,18 @@ function StandContent() {
     finalSpent: string;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [justOrdered, setJustOrdered] = useState(false);
 
   const embeddedWallet = wallets.find((w) => w.walletClientType === "privy");
   const pricePerHotdog = TIER_PRICES[tier] || TIER_PRICES.regular;
   const displayPrice = TIER_DISPLAY_PRICES[tier] || TIER_DISPLAY_PRICES.regular;
 
-  // Open session on first visit
   const openSession = useCallback(async () => {
     if (!sessionId || sessionOpen) return;
 
     try {
       setError(null);
       const challenge = await fetchChallenge(sessionId);
-      // Generate a deterministic channel ID from session
       const channelBytes = new Uint8Array(32);
       crypto.getRandomValues(channelBytes);
       const chId =
@@ -82,19 +81,16 @@ function StandContent() {
     setError(null);
 
     try {
-      // Calculate new cumulative amount
       const newCumulative = (
         BigInt(cumulativeAmount) + BigInt(pricePerHotdog)
       ).toString();
 
-      // Sign the voucher
       const signature = await signVoucher(
         embeddedWallet,
         channelId,
         newCumulative
       );
 
-      // Send voucher to server
       const receipt = await sendVoucher(
         sessionId,
         channelId,
@@ -105,6 +101,8 @@ function StandContent() {
       setHotdogCount(receipt.hotdogCount);
       setCumulativeAmount(receipt.cumulativeAmount);
       setSpent(receipt.spent);
+      setJustOrdered(true);
+      setTimeout(() => setJustOrdered(false), 500);
     } catch (err) {
       console.error("Order failed:", err);
       setError(err instanceof Error ? err.message : "Order failed");
@@ -142,58 +140,70 @@ function StandContent() {
   if (!ready || !authenticated) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin w-8 h-8 border-2 border-zinc-700 border-t-orange-500 rounded-full" />
+        <div className="w-10 h-10 border-3 border-grease-stain border-t-mustard rounded-full animate-spin" />
       </div>
     );
   }
 
-  // Show settlement result
+  // Settlement receipt
   if (closeResult) {
     return (
       <div className="flex items-center justify-center min-h-screen px-4">
         <div className="max-w-md w-full text-center space-y-6">
           <div className="text-6xl">🧾</div>
-          <h1 className="text-2xl font-bold">Session Closed</h1>
+          <h1 className="font-bangers text-4xl text-mustard">YOUR TAB</h1>
+          <p className="text-napkin-gray italic">&ldquo;Your tab has been settled. The wiener remembers.&rdquo;</p>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 space-y-4 text-left">
-            <div className="flex justify-between">
-              <span className="text-zinc-500">Hotdogs purchased</span>
-              <span className="font-mono font-bold">{hotdogCount}</span>
+          {/* Receipt card */}
+          <div className="bg-grill-smoke border-2 border-grease-stain rounded-2xl p-6 space-y-4 text-left font-mono text-sm">
+            <div className="text-center text-pencil-scrawl text-xs border-b border-dashed border-grease-stain pb-3 mb-3">
+              === HOTDOG NOT HOTDOG ===<br />
+              SESSION RECEIPT
             </div>
-            <div className="border-t border-zinc-800" />
             <div className="flex justify-between">
-              <span className="text-zinc-500">Total spent</span>
-              <span className="font-mono font-bold">
+              <span className="text-napkin-gray">Hotdogs purchased</span>
+              <span className="font-bold text-bun-white text-lg">{hotdogCount}x 🌭</span>
+            </div>
+            <div className="border-t border-dashed border-grease-stain" />
+            <div className="flex justify-between">
+              <span className="text-napkin-gray">Unit price</span>
+              <span className="text-bun-white">{displayPrice}</span>
+            </div>
+            <div className="border-t border-dashed border-grease-stain" />
+            <div className="flex justify-between text-lg">
+              <span className="text-napkin-gray font-bold">TOTAL</span>
+              <span className="font-bold text-mustard">
                 {(Number(closeResult.finalSpent) / 1_000_000).toFixed(2)} TIP-20
               </span>
             </div>
             {closeResult.txHash && (
               <>
-                <div className="border-t border-zinc-800" />
+                <div className="border-t border-dashed border-grease-stain" />
                 <div>
-                  <span className="text-zinc-500 text-sm">
-                    Settlement TX
-                  </span>
-                  <p className="font-mono text-xs text-zinc-400 break-all mt-1">
+                  <span className="text-pencil-scrawl text-xs">Settlement TX</span>
+                  <p className="text-pencil-scrawl text-xs break-all mt-1">
                     {closeResult.txHash}
                   </p>
                 </div>
               </>
             )}
+            <div className="text-center text-pencil-scrawl text-xs border-t border-dashed border-grease-stain pt-3">
+              THANK YOU COME AGAIN
+            </div>
           </div>
 
           <div className="flex gap-3">
             <button
               onClick={() => (window.location.href = "/")}
-              className="flex-1 py-3 border border-zinc-700 hover:border-zinc-600 rounded-xl text-sm text-zinc-400 transition-colors"
+              className="flex-1 py-3 border-2 border-grease-stain hover:border-mustard/50 rounded-xl text-sm text-napkin-gray font-bangers text-lg transition-all cursor-pointer"
             >
-              Back to Home
+              BACK HOME
             </button>
             <button
               onClick={logout}
-              className="flex-1 py-3 border border-zinc-700 hover:border-zinc-600 rounded-xl text-sm text-zinc-400 transition-colors"
+              className="flex-1 py-3 border-2 border-grease-stain hover:border-ketchup/50 rounded-xl text-sm text-napkin-gray font-bangers text-lg transition-all cursor-pointer"
             >
-              Sign Out
+              SIGN OUT
             </button>
           </div>
         </div>
@@ -202,44 +212,50 @@ function StandContent() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen px-4">
-      <div className="max-w-md w-full space-y-6">
-        {/* Header */}
+    <div className="relative flex items-center justify-center min-h-screen px-4">
+      <div className="starburst" />
+
+      <div className="relative z-10 max-w-md w-full space-y-6">
+        {/* Header -- menu board style */}
         <div className="text-center space-y-2">
           <div className="text-5xl">🌭</div>
-          <h1 className="text-2xl font-bold">Hotdog Stand</h1>
-          <p className="text-zinc-500 text-sm">
-            Tier:{" "}
+          <h1 className="font-bangers text-4xl text-mustard neon-text">
+            HOTDOG STAND
+          </h1>
+          <div className="flex justify-center gap-3 items-center">
             <span
-              className={`font-mono font-bold uppercase ${
-                tier === "vip" ? "text-green-400" : "text-blue-400"
+              className={`font-bangers text-lg uppercase px-3 py-1 rounded-full transform rotate-[-2deg] ${
+                tier === "vip"
+                  ? "bg-relish/15 text-relish border border-relish/30"
+                  : "bg-mustard/15 text-mustard border border-mustard/30"
               }`}
             >
               {tier}
-            </span>{" "}
-            | Price: {displayPrice}/hotdog
-          </p>
+            </span>
+            <span className="text-napkin-gray">|</span>
+            <span className="font-mono text-bun-white">{displayPrice}/dog</span>
+          </div>
         </div>
 
-        {/* Stats */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 space-y-4">
+        {/* Stats panel -- diner check style */}
+        <div className="bg-grill-smoke border-2 border-grease-stain rounded-2xl p-6 space-y-4">
           <div className="flex justify-between items-center">
-            <span className="text-zinc-500">Hotdogs</span>
-            <span className="text-3xl font-bold font-mono">
+            <span className="text-napkin-gray">Hotdogs</span>
+            <span className={`text-4xl font-bangers text-mustard ${justOrdered ? "animate-sizzle" : ""}`}>
               {hotdogCount}
             </span>
           </div>
-          <div className="border-t border-zinc-800" />
+          <div className="border-t border-dashed border-grease-stain" />
           <div className="flex justify-between items-center">
-            <span className="text-zinc-500">Spent</span>
-            <span className="font-mono text-lg">
+            <span className="text-napkin-gray">Running tab</span>
+            <span className="font-mono text-lg text-bun-white">
               {(Number(spent) / 1_000_000).toFixed(2)} TIP-20
             </span>
           </div>
-          <div className="border-t border-zinc-800" />
+          <div className="border-t border-dashed border-grease-stain" />
           <div className="flex justify-between items-center">
-            <span className="text-zinc-500">Channel</span>
-            <span className="font-mono text-xs text-zinc-600">
+            <span className="text-napkin-gray">Channel</span>
+            <span className="font-mono text-xs text-pencil-scrawl">
               {channelId
                 ? `${channelId.slice(0, 10)}...${channelId.slice(-6)}`
                 : "Opening..."}
@@ -247,16 +263,23 @@ function StandContent() {
           </div>
         </div>
 
-        {/* Hotdog display */}
+        {/* Hotdog grill display */}
         {hotdogCount > 0 && (
-          <div className="text-center text-4xl space-x-1 flex flex-wrap justify-center gap-1">
+          <div className="flex flex-wrap justify-center gap-1 py-2">
             {Array.from({ length: Math.min(hotdogCount, 20) }).map((_, i) => (
-              <span key={i} className="animate-bounce" style={{ animationDelay: `${i * 0.1}s` }}>
+              <span
+                key={i}
+                className="text-3xl animate-drop-in"
+                style={{
+                  animationDelay: `${i * 0.05}s`,
+                  transform: `rotate(${(i % 3 - 1) * 15}deg)`,
+                }}
+              >
                 🌭
               </span>
             ))}
             {hotdogCount > 20 && (
-              <span className="text-zinc-500 text-sm self-end">
+              <span className="text-napkin-gray text-sm self-end font-mono">
                 +{hotdogCount - 20} more
               </span>
             )}
@@ -265,44 +288,62 @@ function StandContent() {
 
         {/* Error */}
         {error && (
-          <p className="text-red-400 text-sm bg-red-500/10 rounded-lg p-3 text-center">
-            {error}
-          </p>
+          <div className="animate-shake">
+            <p className="text-ketchup text-sm bg-ketchup/10 border border-ketchup/30 rounded-xl p-3 text-center font-mono">
+              {error}
+            </p>
+          </div>
         )}
 
-        {/* Actions */}
+        {/* ORDER HOTDOG -- THE BIG BUTTON */}
         <div className="space-y-3">
           <button
             onClick={orderHotdog}
             disabled={isOrdering || !sessionOpen || !channelId}
-            className="w-full py-4 px-6 bg-orange-500 hover:bg-orange-600 disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-bold text-lg rounded-xl transition-colors"
+            className={`w-full py-5 px-6 font-bangers text-3xl rounded-2xl transform transition-all cursor-pointer
+              ${isOrdering
+                ? "bg-stand-orange/50 text-bun-white/50 scale-95"
+                : "bg-mustard hover:bg-mustard/90 text-night-cart rotate-[-1deg] hover:rotate-[1deg] hover:scale-[1.02] comic-border"
+              }
+              disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none disabled:border-grease-stain
+            `}
           >
             {isOrdering ? (
-              <span className="flex items-center justify-center gap-2">
-                <div className="animate-spin w-5 h-5 border-2 border-white/30 border-t-white rounded-full" />
-                Ordering...
+              <span className="flex items-center justify-center gap-3">
+                <span className="animate-spin text-2xl">🔥</span>
+                GRILLING...
               </span>
             ) : (
-              `🌭 Order Hotdog (${displayPrice})`
+              `🌭 ORDER HOTDOG (${displayPrice})`
             )}
           </button>
 
           <button
             onClick={handleClose}
             disabled={isClosing || !sessionOpen}
-            className="w-full py-3 border border-zinc-700 hover:border-zinc-600 disabled:border-zinc-800 disabled:text-zinc-700 rounded-xl text-sm text-zinc-400 transition-colors"
+            className="w-full py-3 border-2 border-grease-stain hover:border-napkin-gray disabled:border-grease-stain/50 disabled:text-pencil-scrawl rounded-xl text-napkin-gray font-bangers text-lg transition-all cursor-pointer"
           >
-            {isClosing ? "Closing session..." : "Leave Stand (Close Session)"}
+            {isClosing ? "CLOSING SESSION..." : "CLOSE TAB & BOUNCE"}
           </button>
         </div>
 
         {/* Wallet info */}
-        <div className="text-center text-xs text-zinc-600 space-y-1">
+        <div className="text-center text-xs text-pencil-scrawl font-mono space-y-1">
           <p>
             Wallet: {embeddedWallet?.address?.slice(0, 6)}...
             {embeddedWallet?.address?.slice(-4)}
           </p>
           <p>Chain: Tempo (42431)</p>
+        </div>
+
+        {/* Sign out */}
+        <div className="text-center">
+          <button
+            onClick={logout}
+            className="text-xs text-pencil-scrawl hover:text-napkin-gray underline underline-offset-2 transition-colors cursor-pointer"
+          >
+            Sign Out
+          </button>
         </div>
       </div>
     </div>
@@ -314,7 +355,7 @@ export default function StandPage() {
     <Suspense
       fallback={
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin w-8 h-8 border-2 border-zinc-700 border-t-orange-500 rounded-full" />
+          <div className="w-10 h-10 border-3 border-grease-stain border-t-mustard rounded-full animate-spin" />
         </div>
       }
     >

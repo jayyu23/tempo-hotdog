@@ -1,18 +1,46 @@
 import { createPublicClient, http, defineChain } from "viem";
 
-export const tempoChain = defineChain({
+// Tempo Testnet (Moderato) — chainId 42431
+export const tempoTestnet = defineChain({
   id: 42431,
-  name: "Tempo",
-  nativeCurrency: { name: "TEMPO", symbol: "TEMPO", decimals: 18 },
+  name: "Tempo Moderato",
+  nativeCurrency: { name: "USD", symbol: "USD", decimals: 6 },
   rpcUrls: {
-    default: { http: [process.env.TEMPO_RPC_URL || "https://rpc.tempo.xyz"] },
+    default: { http: ["https://rpc.moderato.tempo.xyz"] },
+  },
+  blockExplorers: {
+    default: { name: "Tempo Explorer", url: "https://explore.moderato.tempo.xyz" },
+  },
+  testnet: true,
+});
+
+// Tempo Mainnet (Presto) — chainId 4217
+export const tempoMainnet = defineChain({
+  id: 4217,
+  name: "Tempo",
+  nativeCurrency: { name: "USD", symbol: "USD", decimals: 6 },
+  rpcUrls: {
+    default: { http: ["https://rpc.presto.tempo.xyz"] },
+  },
+  blockExplorers: {
+    default: { name: "Tempo Explorer", url: "https://explore.tempo.xyz" },
   },
 });
 
+// Use testnet by default (matches PRD chainId 42431)
+export const tempoChain = tempoTestnet;
+
+// Predeployed system contracts
+export const PATHUSD_ADDRESS = "0x20c0000000000000000000000000000000000000" as `0x${string}`;
+
+// TempoStreamChannel escrow contracts
+export const ESCROW_ADDRESS_TESTNET = "0xe1c4d3dce17bc111181ddf716f75bae49e61a336" as `0x${string}`;
+export const ESCROW_ADDRESS_MAINNET = "0x33b901018174DDabE4841042ab76ba85D4e24f25" as `0x${string}`;
+
 export const ESCROW_ADDRESS = (process.env.TEMPO_ESCROW_ADDRESS ||
-  "0x0000000000000000000000000000000000000000") as `0x${string}`;
+  ESCROW_ADDRESS_TESTNET) as `0x${string}`;
 export const TIP20_ADDRESS = (process.env.TEMPO_TIP20_ADDRESS ||
-  "0x0000000000000000000000000000000000000000") as `0x${string}`;
+  PATHUSD_ADDRESS) as `0x${string}`;
 
 // VIP: $0.50 per hotdog = 500000 base units (6 decimals)
 // Regular: $1.00 per hotdog = 1000000 base units
@@ -29,14 +57,16 @@ export const TIER_DISPLAY_PRICES: Record<string, string> = {
 export function getTempoClient() {
   return createPublicClient({
     chain: tempoChain,
-    transport: http(process.env.TEMPO_RPC_URL || "https://rpc.tempo.xyz"),
+    transport: http(
+      process.env.TEMPO_RPC_URL || "https://rpc.moderato.tempo.xyz"
+    ),
   });
 }
 
 // TempoStreamChannel ABI (minimal for our needs)
 export const TEMPO_STREAM_CHANNEL_ABI = [
   {
-    name: "openChannel",
+    name: "open",
     type: "function",
     stateMutability: "nonpayable",
     inputs: [
@@ -60,7 +90,18 @@ export const TEMPO_STREAM_CHANNEL_ABI = [
     outputs: [],
   },
   {
-    name: "channels",
+    name: "settle",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "channelId", type: "bytes32" },
+      { name: "cumulativeAmount", type: "uint256" },
+      { name: "signature", type: "bytes" },
+    ],
+    outputs: [],
+  },
+  {
+    name: "getChannel",
     type: "function",
     stateMutability: "view",
     inputs: [{ name: "channelId", type: "bytes32" }],
@@ -74,16 +115,18 @@ export const TEMPO_STREAM_CHANNEL_ABI = [
   },
 ] as const;
 
-// EIP-712 domain for voucher signing
+// EIP-712 domain for voucher signing (includes verifyingContract per spec)
 export const VOUCHER_EIP712_DOMAIN = {
   name: "Tempo Stream Channel",
   version: "1",
   chainId: 42431,
+  verifyingContract: ESCROW_ADDRESS,
 } as const;
 
+// Note: cumulativeAmount is uint128 per Tempo spec
 export const VOUCHER_EIP712_TYPES = {
   Voucher: [
     { name: "channelId", type: "bytes32" },
-    { name: "cumulativeAmount", type: "uint256" },
+    { name: "cumulativeAmount", type: "uint128" },
   ],
 } as const;

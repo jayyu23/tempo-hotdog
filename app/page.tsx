@@ -1,11 +1,11 @@
 "use client";
 
 import { usePrivy } from "@privy-io/react-auth";
+import Image from "next/image";
 
 export default function LoginPage() {
   const { ready, authenticated, login } = usePrivy();
 
-  // Redirect to /prove if already authenticated
   if (ready && authenticated) {
     window.location.href = "/prove";
     return null;
@@ -13,85 +13,74 @@ export default function LoginPage() {
 
   if (!ready) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin w-8 h-8 border-2 border-zinc-700 border-t-orange-500 rounded-full" />
+      <div className="flex items-center justify-center min-h-screen bg-night-cart">
+        <div className="w-10 h-10 border-3 border-grease-stain border-t-mustard rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen px-4">
-      <div className="max-w-md w-full text-center space-y-8">
-        {/* Logo */}
-        <div className="space-y-2">
-          <div className="text-6xl">🌭</div>
-          <h1 className="text-4xl font-bold tracking-tight">
-            Hotdog <span className="text-orange-500">Not</span> Hotdog
-          </h1>
-          <p className="text-zinc-400 text-lg">
-            ZK-gated hotdog stand on Tempo
-          </p>
+    <div className="relative flex items-center justify-center min-h-screen px-4 overflow-hidden">
+      {/* Starburst background */}
+      <div className="starburst" />
+
+      {/* Content */}
+      <div className="relative z-10 max-w-md w-full text-center space-y-8">
+        {/* Jian Yang hero image */}
+        <div className="relative inline-block animate-float">
+          <div className="relative w-48 h-48 mx-auto rounded-2xl overflow-hidden comic-border transform rotate-[-2deg]">
+            <Image
+              src="/images/jianyang.png"
+              alt="SeeFood Founder"
+              fill
+              className="object-cover object-top"
+              priority
+            />
+            <div className="halftone absolute inset-0" />
+          </div>
+          {/* Caption badge */}
+          <div className="absolute -bottom-3 -right-4 bg-ketchup text-bun-white font-bangers text-xs px-3 py-1 rounded-full transform rotate-[6deg] comic-border border-2!">
+            SEEFOOD CEO
+          </div>
         </div>
 
-        {/* Feature list */}
-        <div className="space-y-4 text-left">
-          <div className="flex gap-3 items-start">
-            <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-green-400 text-sm font-bold">ZK</span>
-            </div>
-            <div>
-              <p className="font-medium text-sm">Privacy-first identity</p>
-              <p className="text-zinc-500 text-sm">
-                Prove your email domain without revealing your identity
-              </p>
-            </div>
-          </div>
+        {/* Neon sign title */}
+        <div className="space-y-2">
+          <h1 className="font-bangers text-6xl md:text-7xl tracking-wide animate-neon-flicker text-mustard">
+            HOTDOG
+          </h1>
+          <h1 className="font-bangers text-5xl md:text-6xl tracking-wide text-stand-orange neon-text">
+            NOT HOTDOG
+          </h1>
+        </div>
 
-          <div className="flex gap-3 items-start">
-            <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-orange-400 text-sm">$</span>
-            </div>
-            <div>
-              <p className="font-medium text-sm">Tiered pricing</p>
-              <p className="text-zinc-500 text-sm">
-                VIP ($0.50) or Regular ($1.00) — based on your domain
-              </p>
-            </div>
-          </div>
+        <p className="text-napkin-gray text-lg italic">
+          &ldquo;Prove your domain. Get your dog.&rdquo;
+        </p>
 
-          <div className="flex gap-3 items-start">
-            <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-blue-400 text-sm font-mono">MPP</span>
-            </div>
-            <div>
-              <p className="font-medium text-sm">Streaming payments</p>
-              <p className="text-zinc-500 text-sm">
-                Pay per hotdog via Tempo Machine Payments Protocol
-              </p>
-            </div>
-          </div>
+        {/* Feature stickers */}
+        <div className="flex justify-center gap-3 flex-wrap">
+          <span className="inline-block bg-relish/15 text-relish font-bangers text-sm px-4 py-2 rounded-full transform rotate-[-3deg] border border-relish/30">
+            ZK PRIVACY
+          </span>
+          <span className="inline-block bg-mustard/15 text-mustard font-bangers text-sm px-4 py-2 rounded-full transform rotate-[2deg] border border-mustard/30">
+            TIERED PRICING
+          </span>
+          <span className="inline-block bg-stand-orange/15 text-stand-orange font-bangers text-sm px-4 py-2 rounded-full transform rotate-[-1deg] border border-stand-orange/30">
+            TEMPO MPP
+          </span>
         </div>
 
         {/* Login button */}
         <button
           onClick={login}
-          className="w-full py-3 px-6 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+          className="w-full py-4 px-6 bg-mustard hover:bg-mustard/90 text-night-cart font-bangers text-2xl rounded-2xl transform rotate-[-1deg] hover:rotate-[1deg] transition-all duration-200 comic-border animate-wobble-hover cursor-pointer"
         >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-          >
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-          </svg>
-          Sign in with Google
+          SIGN IN WITH GOOGLE
         </button>
 
-        <p className="text-xs text-zinc-600">
+        {/* Footer */}
+        <p className="text-pencil-scrawl text-xs font-mono tracking-widest uppercase">
           Powered by Privy + Tempo Chain
         </p>
       </div>

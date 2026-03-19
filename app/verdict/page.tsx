@@ -1,36 +1,83 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { usePrivy } from "@privy-io/react-auth";
+import Image from "next/image";
 
 function VerdictContent() {
+  const { logout } = usePrivy();
   const searchParams = useSearchParams();
   const tier = searchParams.get("tier") || "regular";
   const sessionId = searchParams.get("session") || "";
+  const [showContent, setShowContent] = useState(false);
+  const [showStamp, setShowStamp] = useState(false);
+  const [showRedFlash, setShowRedFlash] = useState(tier === "blacklisted");
 
-  const tierConfig: Record<string, { emoji: string; title: string; subtitle: string; price: string; color: string; canEnter: boolean }> = {
+  useEffect(() => {
+    // Sequence the reveal
+    const t1 = setTimeout(() => setShowContent(true), tier === "blacklisted" ? 400 : 200);
+    const t2 = setTimeout(() => setShowStamp(true), tier === "blacklisted" ? 800 : 500);
+    const t3 = tier === "blacklisted"
+      ? setTimeout(() => setShowRedFlash(false), 300)
+      : undefined;
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      if (t3) clearTimeout(t3);
+    };
+  }, [tier]);
+
+  const tierConfig: Record<string, {
+    title: string;
+    subtitle: string;
+    price: string;
+    memeImage: string;
+    bgColor: string;
+    textColor: string;
+    glowClass: string;
+    buttonText: string;
+    buttonClass: string;
+    flavorText: string;
+    canEnter: boolean;
+  }> = {
     vip: {
-      emoji: "✅",
       title: "YOU MAY BUY CHEAP",
-      subtitle: "VIP Access Granted",
+      subtitle: "VIP ACCESS GRANTED",
       price: "$0.50/hotdog",
-      color: "text-green-400",
+      memeImage: "/images/cheap-hotdog.jpg",
+      bgColor: "from-blue-900/80 to-night-cart",
+      textColor: "text-relish",
+      glowClass: "neon-text-green",
+      buttonText: "GET YOUR DISCOUNT DOGS",
+      buttonClass: "bg-relish text-night-cart animate-pulse-glow",
+      flavorText: "You are a friend of the wiener",
       canEnter: true,
     },
     regular: {
-      emoji: "🌭",
       title: "YOU MAY BUY",
-      subtitle: "Regular Access",
+      subtitle: "REGULAR ACCESS",
       price: "$1.00/hotdog",
-      color: "text-blue-400",
+      memeImage: "/images/hotdog.jpg",
+      bgColor: "from-green-900/80 to-night-cart",
+      textColor: "text-mustard",
+      glowClass: "neon-text",
+      buttonText: "STEP RIGHT UP",
+      buttonClass: "bg-stand-orange text-bun-white animate-pulse-glow-mustard",
+      flavorText: "You may purchase tube meat at standard rates",
       canEnter: true,
     },
     blacklisted: {
-      emoji: "❌",
       title: "YOU MAY NOT BUY",
-      subtitle: "Access Denied",
+      subtitle: "ACCESS DENIED",
       price: "N/A",
-      color: "text-red-400",
+      memeImage: "/images/not-hotdog.jpg",
+      bgColor: "from-red-900/80 to-night-cart",
+      textColor: "text-ketchup",
+      glowClass: "neon-text-red",
+      buttonText: "LEAVE IN SHAME",
+      buttonClass: "border-2 border-grease-stain text-napkin-gray hover:border-ketchup/50",
+      flavorText: "The wiener rejects you. Begone.",
       canEnter: false,
     },
   };
@@ -38,66 +85,127 @@ function VerdictContent() {
   const config = tierConfig[tier] || tierConfig.regular;
 
   return (
-    <div className="flex items-center justify-center min-h-screen px-4">
-      <div className="max-w-lg w-full text-center space-y-8">
-        {/* Big emoji reveal */}
-        <div className="text-8xl animate-bounce">{config.emoji}</div>
+    <div className={`relative min-h-screen overflow-hidden ${tier === "blacklisted" ? "animate-shake" : ""}`}>
+      {/* Red flash for blacklisted */}
+      {showRedFlash && (
+        <div className="fixed inset-0 bg-ketchup z-50 animate-[redFlash_0.3s_ease-out_forwards]" />
+      )}
 
-        {/* Tier title */}
-        <div className="space-y-2">
-          <h1 className={`text-4xl font-bold tracking-tight ${config.color}`}>
-            {config.title}
-          </h1>
-          <p className="text-zinc-400 text-xl">{config.subtitle}</p>
-        </div>
+      {/* Meme background image */}
+      <div className="absolute inset-0">
+        <Image
+          src={config.memeImage}
+          alt={tier}
+          fill
+          className="object-cover"
+          style={{
+            filter: "brightness(0.35) contrast(1.2) saturate(1.1)",
+          }}
+          priority
+        />
+        {/* Gradient overlay */}
+        <div className={`absolute inset-0 bg-gradient-to-t ${config.bgColor}`} />
+      </div>
 
-        {/* Price info */}
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-zinc-500">Tier</span>
-            <span
-              className={`font-mono font-bold uppercase ${config.color}`}
-            >
-              {tier}
-            </span>
-          </div>
-          <div className="border-t border-zinc-800" />
-          <div className="flex justify-between items-center">
-            <span className="text-zinc-500">Price per hotdog</span>
-            <span className="font-mono font-bold">{config.price}</span>
-          </div>
-          <div className="border-t border-zinc-800" />
-          <div className="flex justify-between items-center">
-            <span className="text-zinc-500">Payment</span>
-            <span className="text-zinc-300 text-sm">
-              Tempo MPP Streaming
-            </span>
-          </div>
-        </div>
+      {/* Starburst for VIP */}
+      {tier === "vip" && <div className="starburst" />}
 
-        {/* Action */}
-        {config.canEnter ? (
-          <button
-            onClick={() => {
-              window.location.href = `/stand?session=${sessionId}`;
-            }}
-            className="w-full py-4 px-6 bg-orange-500 hover:bg-orange-600 text-white font-bold text-lg rounded-xl transition-colors"
-          >
-            🌭 Enter the Stand
-          </button>
-        ) : (
-          <div className="space-y-4">
-            <p className="text-red-400 text-sm">
-              Your domain has been blacklisted by the admin.
+      {/* Sign out button */}
+      <button
+        onClick={logout}
+        className="absolute top-4 right-4 z-20 px-4 py-2 border border-grease-stain hover:border-napkin-gray text-napkin-gray text-sm rounded-lg transition-all cursor-pointer backdrop-blur-sm bg-night-cart/50"
+      >
+        Sign Out
+      </button>
+
+      {/* Content */}
+      <div className="relative z-10 flex items-center justify-center min-h-screen px-4">
+        <div className="max-w-lg w-full text-center space-y-8">
+          {/* Title */}
+          {showContent && (
+            <div className="space-y-4 animate-slide-up">
+              <h1
+                className={`font-bangers text-6xl md:text-8xl tracking-wide comic-stroke ${config.textColor} ${config.glowClass}`}
+              >
+                {config.title}
+              </h1>
+              <p className="font-bangers text-2xl text-bun-white/80 tracking-wider">
+                {config.subtitle}
+              </p>
+            </div>
+          )}
+
+          {/* DENIED stamp for blacklisted */}
+          {tier === "blacklisted" && showStamp && (
+            <div className="animate-stamp-in">
+              <span className="inline-block font-bangers text-5xl text-ketchup border-4 border-ketchup px-6 py-2 rounded-lg opacity-80">
+                DENIED
+              </span>
+            </div>
+          )}
+
+          {/* Flavor text */}
+          {showContent && (
+            <p className="text-napkin-gray text-lg italic animate-slide-up" style={{ animationDelay: "0.2s" }}>
+              &ldquo;{config.flavorText}&rdquo;
             </p>
-            <button
-              onClick={() => (window.location.href = "/")}
-              className="px-6 py-2 border border-zinc-700 hover:border-zinc-600 rounded-lg text-sm text-zinc-400 transition-colors"
+          )}
+
+          {/* Price card */}
+          {showContent && config.canEnter && (
+            <div
+              className="bg-grill-smoke/90 border-2 border-grease-stain rounded-2xl p-6 space-y-4 animate-slide-up backdrop-blur-sm"
+              style={{ animationDelay: "0.3s" }}
             >
-              Back to Login
-            </button>
-          </div>
-        )}
+              <div className="flex justify-between items-center">
+                <span className="text-napkin-gray">Tier</span>
+                <span className={`font-bangers text-xl uppercase ${config.textColor}`}>
+                  {tier}
+                </span>
+              </div>
+              <div className="border-t border-grease-stain" />
+              <div className="flex justify-between items-center">
+                <span className="text-napkin-gray">Price per hotdog</span>
+                <span className="font-bangers text-xl text-bun-white">{config.price}</span>
+              </div>
+              <div className="border-t border-grease-stain" />
+              <div className="flex justify-between items-center">
+                <span className="text-napkin-gray">Payment</span>
+                <span className="text-napkin-gray text-sm font-mono">
+                  Tempo MPP Streaming
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Action button */}
+          {showContent && (
+            <div className="animate-slide-up" style={{ animationDelay: "0.5s" }}>
+              {config.canEnter ? (
+                <button
+                  onClick={() => {
+                    window.location.href = `/stand?session=${sessionId}`;
+                  }}
+                  className={`w-full py-5 px-6 font-bangers text-2xl rounded-2xl transform rotate-[-1deg] hover:rotate-[1deg] transition-all cursor-pointer ${config.buttonClass}`}
+                >
+                  🌭 {config.buttonText}
+                </button>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-ketchup/80 text-sm">
+                    Not hotdog. Not welcome.
+                  </p>
+                  <button
+                    onClick={() => (window.location.href = "/")}
+                    className={`px-8 py-3 rounded-xl text-sm transition-all cursor-pointer ${config.buttonClass}`}
+                  >
+                    {config.buttonText}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -108,7 +216,7 @@ export default function VerdictPage() {
     <Suspense
       fallback={
         <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin w-8 h-8 border-2 border-zinc-700 border-t-orange-500 rounded-full" />
+          <div className="w-10 h-10 border-3 border-grease-stain border-t-mustard rounded-full animate-spin" />
         </div>
       }
     >

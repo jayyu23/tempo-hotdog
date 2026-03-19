@@ -1,24 +1,181 @@
 @import "tailwindcss";
 
-:root {
-  --background: #000000;
-  --foreground: #ffffff;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Condiment palette */
+  --color-mustard: #FFD700;
+  --color-ketchup: #FF2E2E;
+  --color-relish: #39FF14;
+  --color-stand-orange: #FF6B1A;
+
+  /* Surfaces */
+  --color-night-cart: #0D0D0D;
+  --color-grill-smoke: #1A1A2E;
+  --color-wrapper-paper: #2A2A3D;
+  --color-grease-stain: #3D3D56;
+
+  /* Text */
+  --color-bun-white: #F5F0E8;
+  --color-napkin-gray: #9B95A0;
+  --color-pencil-scrawl: #6B6575;
+
+  /* Fonts */
+  --font-bangers: var(--font-bangers);
+  --font-body: var(--font-space-grotesk);
+  --font-mono: var(--font-jetbrains-mono);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  background: var(--color-night-cart);
+  color: var(--color-bun-white);
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
 }
 
-/* Smooth animations */
+/* ===== LIGHT MODE ===== */
+html.light {
+  --color-mustard: #D4A800;
+  --color-ketchup: #D42020;
+  --color-relish: #1A9E00;
+  --color-stand-orange: #E05A10;
+
+  --color-night-cart: #FFF8F0;
+  --color-grill-smoke: #F0E8DD;
+  --color-wrapper-paper: #E5DDD2;
+  --color-grease-stain: #C8C0B5;
+
+  --color-bun-white: #1A1A2E;
+  --color-napkin-gray: #5A5465;
+  --color-pencil-scrawl: #8A8495;
+}
+
+/* ===== ANIMATIONS ===== */
+
+@keyframes wobble {
+  0% { transform: rotate(0deg); }
+  15% { transform: rotate(-3deg); }
+  30% { transform: rotate(2deg); }
+  45% { transform: rotate(-2deg); }
+  60% { transform: rotate(1deg); }
+  75% { transform: rotate(-1deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes neonFlicker {
+  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+    opacity: 1;
+    text-shadow:
+      0 0 7px #FFD700,
+      0 0 10px #FFD700,
+      0 0 21px #FFD700,
+      0 0 42px #FF6B1A,
+      0 0 82px #FF6B1A;
+  }
+  20%, 24%, 55% {
+    opacity: 0.7;
+    text-shadow: none;
+  }
+}
+
+@keyframes dropIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-40px) scale(0.5) rotate(-10deg);
+  }
+  60% {
+    transform: translateY(8px) scale(1.1) rotate(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10% { transform: translateX(-8px) rotate(-1deg); }
+  20% { transform: translateX(8px) rotate(1deg); }
+  30% { transform: translateX(-6px) rotate(-0.5deg); }
+  40% { transform: translateX(6px) rotate(0.5deg); }
+  50% { transform: translateX(-4px); }
+  60% { transform: translateX(4px); }
+  70% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+
+@keyframes sizzle {
+  0% { transform: scale(1); }
+  25% { transform: scale(0.95); }
+  50% { transform: scale(1.05); box-shadow: 0 0 30px #FFD70060; }
+  100% { transform: scale(1); }
+}
+
+@keyframes stampIn {
+  0% {
+    opacity: 0;
+    transform: scale(2.5) rotate(-15deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(0.9) rotate(-12deg);
+  }
+  100% {
+    transform: scale(1) rotate(-12deg);
+  }
+}
+
+@keyframes slideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px #39FF1440;
+  }
+  50% {
+    box-shadow: 0 0 40px #39FF1480, 0 0 60px #39FF1430;
+  }
+}
+
+@keyframes pulse-glow-mustard {
+  0%, 100% {
+    box-shadow: 0 0 20px #FFD70040;
+  }
+  50% {
+    box-shadow: 0 0 40px #FFD70080, 0 0 60px #FFD70030;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(-2deg); }
+  50% { transform: translateY(-8px) rotate(-1deg); }
+}
+
+@keyframes scanline {
+  0% { top: -10%; }
+  100% { top: 110%; }
+}
+
+@keyframes redFlash {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes starburst-rotate {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
 @keyframes bounce {
   0%, 100% {
     transform: translateY(-5%);
@@ -30,6 +187,190 @@ body {
   }
 }
 
+/* ===== UTILITY CLASSES ===== */
+
+.animate-wobble {
+  animation: wobble 0.5s ease-in-out;
+}
+.animate-wobble-hover:hover {
+  animation: wobble 0.5s ease-in-out;
+}
+.animate-neon-flicker {
+  animation: neonFlicker 4s infinite;
+}
+.animate-drop-in {
+  animation: dropIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.animate-shake {
+  animation: shake 0.6s ease-in-out;
+}
+.animate-sizzle {
+  animation: sizzle 0.3s ease-in-out;
+}
+.animate-stamp-in {
+  animation: stampIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+.animate-slide-up {
+  animation: slideUp 0.5s ease-out forwards;
+}
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+.animate-pulse-glow-mustard {
+  animation: pulse-glow-mustard 2s ease-in-out infinite;
+}
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
 .animate-bounce {
   animation: bounce 1s infinite;
+}
+
+/* Neon text effect */
+.neon-text {
+  text-shadow:
+    0 0 7px #FFD700,
+    0 0 10px #FFD700,
+    0 0 21px #FFD700,
+    0 0 42px #FF6B1A,
+    0 0 82px #FF6B1A;
+}
+
+.neon-text-green {
+  text-shadow:
+    0 0 7px #39FF14,
+    0 0 10px #39FF14,
+    0 0 21px #39FF14,
+    0 0 42px #39FF1480;
+}
+
+.neon-text-red {
+  text-shadow:
+    0 0 7px #FF2E2E,
+    0 0 10px #FF2E2E,
+    0 0 21px #FF2E2E,
+    0 0 42px #FF2E2E80;
+}
+
+/* Light mode: swap neon glow for drop-shadow style */
+html.light .neon-text {
+  text-shadow:
+    1px 1px 0 #FF6B1A40,
+    2px 2px 8px #FFD70060;
+}
+html.light .neon-text-green {
+  text-shadow:
+    1px 1px 0 #1A9E0040,
+    2px 2px 8px #1A9E0060;
+}
+html.light .neon-text-red {
+  text-shadow:
+    1px 1px 0 #D4202040,
+    2px 2px 8px #D4202060;
+}
+html.light .animate-neon-flicker {
+  animation: none;
+  text-shadow:
+    1px 1px 0 #D4A80040,
+    2px 2px 8px #D4A80060;
+}
+
+/* Comic book text stroke */
+.comic-stroke {
+  -webkit-text-stroke: 2px black;
+  paint-order: stroke fill;
+}
+html.light .comic-stroke {
+  -webkit-text-stroke: 2px #00000030;
+}
+
+/* Halftone overlay for images */
+.halftone {
+  position: relative;
+}
+.halftone::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, #000 1px, transparent 1px);
+  background-size: 4px 4px;
+  mix-blend-mode: multiply;
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+/* Comic book border */
+.comic-border {
+  border: 4px solid black;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.8);
+}
+html.light .comic-border {
+  border-color: #8B7355;
+  box-shadow: 4px 4px 0 rgba(139, 115, 85, 0.4);
+}
+
+/* Scanline effect */
+.scanline {
+  position: relative;
+  overflow: hidden;
+}
+.scanline::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 30%;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(57, 255, 20, 0.08),
+    transparent
+  );
+  animation: scanline 2s linear infinite;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Starburst background */
+.starburst {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.starburst::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200%;
+  height: 200%;
+  transform: translate(-50%, -50%);
+  background: repeating-conic-gradient(
+    rgba(255, 255, 255, 0.04) 0deg,
+    transparent 5deg,
+    transparent 10deg
+  );
+  animation: starburst-rotate 30s linear infinite;
+}
+html.light .starburst::before {
+  background: repeating-conic-gradient(
+    rgba(0, 0, 0, 0.03) 0deg,
+    transparent 5deg,
+    transparent 10deg
+  );
+}
+
+/* Font utility classes */
+.font-bangers {
+  font-family: var(--font-bangers), cursive;
+}
+.font-body {
+  font-family: var(--font-body), sans-serif;
+}
+.font-mono {
+  font-family: var(--font-mono), monospace;
 }
