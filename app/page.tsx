@@ -28,18 +28,19 @@ export default function LoginPage() {
       <div className="relative z-10 max-w-md w-full text-center space-y-8">
         {/* Jian Yang hero image */}
         <div className="relative inline-block animate-float">
-          <div className="relative w-48 h-48 mx-auto rounded-2xl overflow-hidden comic-border transform rotate-[-2deg]">
+          <div className="relative w-72 h-40 md:w-96 md:h-52 mx-auto rounded-2xl overflow-hidden comic-border transform rotate-[-2deg]">
             <Image
               src="/images/jianyang.png"
               alt="SeeFood Founder"
               fill
-              className="object-cover object-top"
+              className="object-cover object-[center_20%]"
+              sizes="(max-width: 768px) 288px, 384px"
               priority
             />
             <div className="halftone absolute inset-0" />
           </div>
           {/* Caption badge */}
-          <div className="absolute -bottom-3 -right-4 bg-ketchup text-bun-white font-bangers text-xs px-3 py-1 rounded-full transform rotate-[6deg] comic-border border-2!">
+          <div className="absolute -bottom-3 -right-4 bg-ketchup text-bun-white font-bangers text-sm px-4 py-1.5 rounded-full transform rotate-[6deg] comic-border border-2!">
             SEEFOOD CEO
           </div>
         </div>

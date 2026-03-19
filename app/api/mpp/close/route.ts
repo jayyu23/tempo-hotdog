@@ -2,7 +2,8 @@ import { NextRequest } from "next/server";
 import { getDb } from "@/lib/mongodb";
 import { createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { tempoChain, ESCROW_ADDRESS, TEMPO_STREAM_CHANNEL_ABI } from "@/lib/tempo";
+import { tempoChain, ESCROW_ADDRESS } from "@/lib/tempo";
+import { Session } from "mppx/tempo";
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,27 +38,31 @@ export async function POST(request: NextRequest) {
 
     let txHash: string | null = null;
 
-    // Try to settle on-chain if we have the server wallet key
+    // Try to settle on-chain using mppx if we have the server wallet key
     const privateKey = process.env.STAND_WALLET_PRIVATE_KEY;
-    if (privateKey && ESCROW_ADDRESS !== "0x0000000000000000000000000000000000000000") {
+    if (privateKey) {
       try {
         const account = privateKeyToAccount(privateKey as `0x${string}`);
-        const walletClient = createWalletClient({
+        const client = createWalletClient({
           account,
           chain: tempoChain,
-          transport: http(process.env.TEMPO_RPC_URL || "https://rpc.tempo.xyz"),
+          transport: http(
+            process.env.TEMPO_RPC_URL || "https://rpc.moderato.tempo.xyz"
+          ),
         });
 
-        const hash = await walletClient.writeContract({
-          address: ESCROW_ADDRESS,
-          abi: TEMPO_STREAM_CHANNEL_ABI,
-          functionName: "close",
-          args: [
-            channelId as `0x${string}`,
-            BigInt(cumulativeAmount),
-            signature as `0x${string}`,
-          ],
-        });
+        const signedVoucher = Session.Voucher.parseVoucherFromPayload(
+          channelId as `0x${string}`,
+          cumulativeAmount,
+          signature as `0x${string}`
+        );
+
+        const hash = await Session.Chain.settleOnChain(
+          client,
+          ESCROW_ADDRESS,
+          signedVoucher,
+          account
+        );
 
         txHash = hash;
       } catch (chainError) {

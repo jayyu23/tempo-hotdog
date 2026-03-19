@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { getDb } from "@/lib/mongodb";
 import { TIER_PRICES, ESCROW_ADDRESS, tempoChain } from "@/lib/tempo";
-import { verifyVoucher, parseVoucherFromPayload } from "mppx/tempo/session";
+import { Session } from "mppx/tempo";
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,12 +37,12 @@ export async function POST(request: NextRequest) {
     // 1. Verify EIP-712 voucher signature using mppx
     const walletAddress = session.walletAddress as `0x${string}`;
     try {
-      const signedVoucher = parseVoucherFromPayload(
+      const signedVoucher = Session.Voucher.parseVoucherFromPayload(
         channelId as `0x${string}`,
         cumulativeAmount,
         signature as `0x${string}`
       );
-      const isValid = await verifyVoucher(
+      const isValid = await Session.Voucher.verifyVoucher(
         ESCROW_ADDRESS,
         tempoChain.id,
         signedVoucher,
