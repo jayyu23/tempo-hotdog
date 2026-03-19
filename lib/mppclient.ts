@@ -79,7 +79,7 @@ export async function signVoucher(
     domain: {
       name: "Tempo Stream Channel",
       version: "1",
-      chainId: "0xa5ff", // 42431 in hex
+      chainId: 42431,
       verifyingContract: escrowAddress,
     },
     message: {

@@ -17,7 +17,7 @@ const TIER_BADGE_STYLES: Record<string, string> = {
 
 export default function AdminRulesPage() {
   const [rules, setRules] = useState<Rule[]>([]);
-  const [adminSecret, setAdminSecret] = useState("");
+  const [adminPwd, setAdminSecret] = useState("");
   const [isAuthed, setIsAuthed] = useState(false);
   const [newDomain, setNewDomain] = useState("");
   const [newTier, setNewTier] = useState("regular");
@@ -27,9 +27,9 @@ export default function AdminRulesPage() {
   const headers = useCallback(
     () => ({
       "Content-Type": "application/json",
-      "x-admin-secret": adminSecret,
+      "x-admin-pwd": adminPwd,
     }),
-    [adminSecret]
+    [adminPwd]
   );
 
   const fetchRules = useCallback(async () => {
@@ -37,7 +37,7 @@ export default function AdminRulesPage() {
       const res = await fetch("/api/admin/rules", { headers: headers() });
       if (res.status === 403) {
         setIsAuthed(false);
-        setError("Invalid admin secret");
+        setError("Invalid admin password");
         return;
       }
       if (!res.ok) throw new Error("Failed to fetch rules");
@@ -50,7 +50,7 @@ export default function AdminRulesPage() {
   }, [headers]);
 
   const handleAuth = async () => {
-    if (!adminSecret) return;
+    if (!adminPwd) return;
     setIsAuthed(true);
     await fetchRules();
   };
@@ -112,10 +112,10 @@ export default function AdminRulesPage() {
           </p>
           <input
             type="password"
-            value={adminSecret}
+            value={adminPwd}
             onChange={(e) => setAdminSecret(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAuth()}
-            placeholder="Admin secret..."
+            placeholder="Admin password..."
             className="w-full px-4 py-3 bg-wrapper-paper border-2 border-grease-stain rounded-xl text-sm text-bun-white focus:outline-none focus:border-mustard transition-colors"
           />
           {error && (

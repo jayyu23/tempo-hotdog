@@ -33,9 +33,9 @@ function VerdictContent() {
     subtitle: string;
     price: string;
     memeImage: string;
-    bgColor: string;
     textColor: string;
     glowClass: string;
+    glowColor: string;
     buttonText: string;
     buttonClass: string;
     flavorText: string;
@@ -46,9 +46,9 @@ function VerdictContent() {
       subtitle: "VIP ACCESS GRANTED",
       price: "$0.50/hotdog",
       memeImage: "/images/cheap-hotdog.jpg",
-      bgColor: "from-blue-900/80 to-night-cart",
       textColor: "text-relish",
       glowClass: "neon-text-green",
+      glowColor: "#39FF14",
       buttonText: "GET YOUR DISCOUNT DOGS",
       buttonClass: "bg-relish text-night-cart animate-pulse-glow",
       flavorText: "You are a friend of the wiener",
@@ -59,9 +59,9 @@ function VerdictContent() {
       subtitle: "REGULAR ACCESS",
       price: "$1.00/hotdog",
       memeImage: "/images/hotdog.jpg",
-      bgColor: "from-green-900/80 to-night-cart",
       textColor: "text-mustard",
       glowClass: "neon-text",
+      glowColor: "#FFD700",
       buttonText: "STEP RIGHT UP",
       buttonClass: "bg-stand-orange text-bun-white animate-pulse-glow-mustard",
       flavorText: "You may purchase tube meat at standard rates",
@@ -72,9 +72,9 @@ function VerdictContent() {
       subtitle: "ACCESS DENIED",
       price: "N/A",
       memeImage: "/images/not-hotdog.jpg",
-      bgColor: "from-red-900/80 to-night-cart",
       textColor: "text-ketchup",
       glowClass: "neon-text-red",
+      glowColor: "#FF2E2E",
       buttonText: "LEAVE IN SHAME",
       buttonClass: "border-2 border-grease-stain text-napkin-gray hover:border-ketchup/50",
       flavorText: "The wiener rejects you. Begone.",
@@ -91,20 +91,20 @@ function VerdictContent() {
         <div className="fixed inset-0 bg-ketchup z-50 animate-[redFlash_0.3s_ease-out_forwards]" />
       )}
 
-      {/* Meme background image */}
-      <div className="absolute inset-0">
-        <Image
-          src={config.memeImage}
-          alt={tier}
-          fill
-          className="object-cover"
-          style={{
-            filter: "brightness(0.35) contrast(1.2) saturate(1.1)",
-          }}
-          priority
+      {/* Floating glow blobs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div
+          className="absolute w-[500px] h-[500px] rounded-full blur-[120px] opacity-20 animate-float"
+          style={{ background: config.glowColor, top: "10%", left: "-10%" }}
         />
-        {/* Gradient overlay */}
-        <div className={`absolute inset-0 bg-gradient-to-t ${config.bgColor}`} />
+        <div
+          className="absolute w-[400px] h-[400px] rounded-full blur-[100px] opacity-15 animate-float"
+          style={{ background: config.glowColor, bottom: "5%", right: "-8%", animationDelay: "1.5s" }}
+        />
+        <div
+          className="absolute w-[250px] h-[250px] rounded-full blur-[80px] opacity-10 animate-float"
+          style={{ background: config.glowColor, top: "50%", left: "50%", animationDelay: "3s" }}
+        />
       </div>
 
       {/* Starburst for VIP */}
@@ -119,7 +119,7 @@ function VerdictContent() {
       </button>
 
       {/* Content */}
-      <div className="relative z-10 flex items-center justify-center min-h-screen px-4">
+      <div className="relative z-10 flex items-center justify-center min-h-screen px-4 py-12">
         <div className="max-w-lg w-full text-center space-y-8">
           {/* Title */}
           {showContent && (
@@ -135,12 +135,29 @@ function VerdictContent() {
             </div>
           )}
 
-          {/* DENIED stamp for blacklisted */}
-          {tier === "blacklisted" && showStamp && (
-            <div className="animate-stamp-in">
-              <span className="inline-block font-bangers text-5xl text-ketchup border-4 border-ketchup px-6 py-2 rounded-lg opacity-80">
-                DENIED
-              </span>
+          {/* Meme image — displayed prominently */}
+          {showContent && (
+            <div className="animate-slide-up relative" style={{ animationDelay: "0.1s" }}>
+              <div className="relative w-full aspect-[3/2] rounded-2xl overflow-hidden comic-border transform rotate-[1deg]">
+                <Image
+                  src={config.memeImage}
+                  alt={tier}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 512px"
+                  priority
+                />
+                <div className="halftone absolute inset-0" />
+              </div>
+
+              {/* DENIED stamp overlaid on image for blacklisted */}
+              {tier === "blacklisted" && showStamp && (
+                <div className="absolute inset-0 flex items-center justify-center animate-stamp-in">
+                  <span className="inline-block font-bangers text-5xl md:text-6xl text-ketchup border-4 border-ketchup px-6 py-2 rounded-lg bg-night-cart/60 backdrop-blur-sm">
+                    DENIED
+                  </span>
+                </div>
+              )}
             </div>
           )}
 

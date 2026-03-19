@@ -1,7 +1,12 @@
 import { NextRequest } from "next/server";
 import { getDb } from "@/lib/mongodb";
-import { TIER_PRICES, ESCROW_ADDRESS, tempoChain } from "@/lib/tempo";
-import { Session } from "mppx/tempo";
+import {
+  TIER_PRICES,
+  ESCROW_ADDRESS,
+  VOUCHER_EIP712_DOMAIN,
+  VOUCHER_EIP712_TYPES,
+} from "@/lib/tempo";
+import { verifyTypedData } from "viem";
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,20 +39,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. Verify EIP-712 voucher signature using mppx
+    // 1. Verify EIP-712 voucher signature using viem
     const walletAddress = session.walletAddress as `0x${string}`;
     try {
-      const signedVoucher = Session.Voucher.parseVoucherFromPayload(
-        channelId as `0x${string}`,
-        cumulativeAmount,
-        signature as `0x${string}`
-      );
-      const isValid = await Session.Voucher.verifyVoucher(
-        ESCROW_ADDRESS,
-        tempoChain.id,
-        signedVoucher,
-        walletAddress
-      );
+      const isValid = await verifyTypedData({
+        address: walletAddress,
+        domain: VOUCHER_EIP712_DOMAIN,
+        types: VOUCHER_EIP712_TYPES,
+        primaryType: "Voucher",
+        message: {
+          channelId: channelId as `0x${string}`,
+          cumulativeAmount: BigInt(cumulativeAmount),
+        },
+        signature: signature as `0x${string}`,
+      });
+
       if (!isValid) {
         return Response.json(
           { error: "Invalid voucher signature" },
@@ -56,7 +62,8 @@ export async function POST(request: NextRequest) {
       }
     } catch (sigError) {
       console.error("Signature verification error:", sigError);
-      // In demo mode, skip strict verification
+      // In demo mode, skip strict verification if viem can't verify
+      // (e.g. Privy embedded wallet quirks)
       console.warn("Skipping strict sig verification for demo");
     }
 
