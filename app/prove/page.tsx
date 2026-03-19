@@ -220,6 +220,14 @@ export default function ProvePage() {
               "Unknown"}
           </p>
         </div>
+
+        {/* Sign out (always visible) */}
+        <button
+          onClick={logout}
+          className="text-xs text-pencil-scrawl hover:text-napkin-gray underline underline-offset-2 transition-colors cursor-pointer"
+        >
+          Sign Out
+        </button>
       </div>
     </div>
   );

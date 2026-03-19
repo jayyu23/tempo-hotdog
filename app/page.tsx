@@ -81,9 +81,16 @@ export default function LoginPage() {
         </button>
 
         {/* Footer */}
-        <p className="text-pencil-scrawl text-xs font-mono tracking-widest uppercase">
-          Powered by Privy + Tempo Chain
-        </p>
+        <div className="flex items-center justify-center gap-3 text-pencil-scrawl text-xs font-mono tracking-widest uppercase">
+          <span>Powered by Privy + Tempo Chain</span>
+          <span>·</span>
+          <a
+            href="/admin"
+            className="hover:text-napkin-gray transition-colors underline underline-offset-2"
+          >
+            Admin
+          </a>
+        </div>
       </div>
     </div>
   );
