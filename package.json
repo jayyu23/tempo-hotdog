@@ -9,15 +9,24 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@privy-io/react-auth": "^3.18.0",
+    "ethers": "^6.16.0",
+    "mongodb": "^7.1.0",
     "next": "16.2.0",
+    "poseidon-lite": "^0.3.0",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "snarkjs": "^0.7.6",
+    "uuid": "^13.0.0",
+    "viem": "^2.47.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/snarkjs": "^0.7.9",
+    "@types/uuid": "^11.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.0",
     "tailwindcss": "^4",
