@@ -12,6 +12,7 @@
     "@privy-io/react-auth": "^3.18.0",
     "ethers": "^6.16.0",
     "mongodb": "^7.1.0",
+    "mppx": "^0.4.7",
     "next": "16.2.0",
     "poseidon-lite": "^0.3.0",
     "react": "19.2.4",

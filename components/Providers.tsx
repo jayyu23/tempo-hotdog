@@ -1,6 +1,7 @@
 "use client";
 
 import { PrivyProvider } from "@privy-io/react-auth";
+import { useTheme } from "./ThemeProvider";
 
 // Tempo Moderato (testnet) chain definition for Privy
 const tempoChain = {
@@ -19,6 +20,7 @@ const tempoChain = {
 };
 
 export default function Providers({ children }: { children: React.ReactNode }) {
+  const { theme } = useTheme();
   const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
 
   if (!appId) {
@@ -37,7 +39,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       config={{
         loginMethods: ["google", "email"],
         appearance: {
-          theme: "dark",
+          theme: theme === "light" ? "light" : "dark",
           accentColor: "#f97316",
         },
         embeddedWallets: {

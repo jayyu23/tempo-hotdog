@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Bangers, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
+import ThemeProvider from "@/components/ThemeProvider";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const bangers = Bangers({
   weight: "400",
@@ -35,7 +37,12 @@ export default function RootLayout({
       className={`${bangers.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col bg-night-cart text-bun-white font-body">
-        <Providers>{children}</Providers>
+        <ThemeProvider>
+          <Providers>
+            <ThemeToggle />
+            {children}
+          </Providers>
+        </ThemeProvider>
       </body>
     </html>
   );
