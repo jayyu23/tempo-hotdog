@@ -39,3 +39,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# circuits build artifacts
+/circuits/build/
+/circuits/node_modules/
+
+# zk artifacts (generated, large binaries)
+/public/zk/*.wasm
+/public/zk/*.zkey
+/public/zk/*.ptau

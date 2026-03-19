@@ -10,6 +10,8 @@ import {
   closeSession,
 } from "@/lib/mppclient";
 import { TIER_PRICES, TIER_DISPLAY_PRICES } from "@/lib/tempo";
+import { createPublicClient, http, formatUnits } from "viem";
+import { tempoTestnet } from "@/lib/tempo";
 
 function StandContent() {
   const { ready, authenticated, logout } = usePrivy();
@@ -36,10 +38,32 @@ function StandContent() {
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [justOrdered, setJustOrdered] = useState(false);
+  const [balance, setBalance] = useState<string | null>(null);
 
   const embeddedWallet = wallets.find((w) => w.walletClientType === "privy");
   const pricePerHotdog = TIER_PRICES[tier] || TIER_PRICES.regular;
   const displayPrice = TIER_DISPLAY_PRICES[tier] || TIER_DISPLAY_PRICES.regular;
+
+  const fetchBalance = useCallback(async () => {
+    if (!embeddedWallet?.address) return;
+    try {
+      const client = createPublicClient({
+        chain: tempoTestnet,
+        transport: http(),
+      });
+      const raw = await client.getBalance({
+        address: embeddedWallet.address as `0x${string}`,
+      });
+      setBalance(formatUnits(raw, 6));
+    } catch (err) {
+      console.error("Failed to fetch balance:", err);
+    }
+  }, [embeddedWallet?.address]);
+
+  // Fetch balance on mount and after orders
+  useEffect(() => {
+    fetchBalance();
+  }, [fetchBalance, hotdogCount]);
 
   const openSession = useCallback(async () => {
     if (!sessionId || sessionOpen) return;
@@ -250,6 +274,13 @@ function StandContent() {
             <span className="text-napkin-gray">Running tab</span>
             <span className="font-mono text-lg text-bun-white">
               {(Number(spent) / 1_000_000).toFixed(2)} TIP-20
+            </span>
+          </div>
+          <div className="border-t border-dashed border-grease-stain" />
+          <div className="flex justify-between items-center">
+            <span className="text-napkin-gray">Wallet balance</span>
+            <span className="font-mono text-lg text-bun-white">
+              {balance !== null ? `$${Number(balance).toFixed(2)}` : "..."}
             </span>
           </div>
           <div className="border-t border-dashed border-grease-stain" />
