@@ -13,6 +13,20 @@ function VerdictContent() {
   const [showContent, setShowContent] = useState(false);
   const [showStamp, setShowStamp] = useState(false);
   const [showRedFlash, setShowRedFlash] = useState(tier === "blacklisted");
+  const [proofIsReal, setProofIsReal] = useState(false);
+
+  const downloadProof = () => {
+    const raw = sessionStorage.getItem("zkProof");
+    if (!raw) return;
+    const proof = JSON.parse(raw);
+    const blob = new Blob([JSON.stringify(proof, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `zkproof-${tier}-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   useEffect(() => {
     // Sequence the reveal
@@ -21,6 +35,7 @@ function VerdictContent() {
     const t3 = tier === "blacklisted"
       ? setTimeout(() => setShowRedFlash(false), 300)
       : undefined;
+    setProofIsReal(sessionStorage.getItem("proofIsReal") === "true");
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
@@ -192,6 +207,20 @@ function VerdictContent() {
                   Tempo MPP Streaming
                 </span>
               </div>
+              <div className="border-t border-grease-stain" />
+              <div className="flex justify-between items-center">
+                <span className="text-napkin-gray">ZK Proof</span>
+                <button
+                  onClick={downloadProof}
+                  className={`text-sm font-bangers px-3 py-1 rounded-lg border transition-all cursor-pointer ${
+                    proofIsReal
+                      ? "text-relish border-relish/30 hover:bg-relish/10"
+                      : "text-mustard border-mustard/30 hover:bg-mustard/10"
+                  }`}
+                >
+                  {proofIsReal ? "DOWNLOAD (REAL)" : "DOWNLOAD (DEMO)"}
+                </button>
+              </div>
             </div>
           )}
 
@@ -212,12 +241,20 @@ function VerdictContent() {
                   <p className="text-ketchup/80 text-sm">
                     Not hotdog. Not welcome.
                   </p>
-                  <button
-                    onClick={() => (window.location.href = "/")}
-                    className={`px-8 py-3 rounded-xl text-sm transition-all cursor-pointer ${config.buttonClass}`}
-                  >
-                    {config.buttonText}
-                  </button>
+                  <div className="flex gap-3 justify-center">
+                    <button
+                      onClick={() => (window.location.href = "/")}
+                      className={`px-8 py-3 rounded-xl text-sm transition-all cursor-pointer ${config.buttonClass}`}
+                    >
+                      {config.buttonText}
+                    </button>
+                    <button
+                      onClick={downloadProof}
+                      className="px-6 py-3 rounded-xl text-sm text-napkin-gray border border-grease-stain hover:border-napkin-gray transition-all cursor-pointer font-bangers"
+                    >
+                      DOWNLOAD PROOF
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

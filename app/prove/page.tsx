@@ -109,6 +109,7 @@ export default function ProvePage() {
       sessionStorage.setItem("tier", data.tier);
       sessionStorage.setItem("domain", domain);
       sessionStorage.setItem("proofIsReal", String(proof.isReal));
+      sessionStorage.setItem("zkProof", JSON.stringify(proof));
 
       setTimeout(() => {
         window.location.href = `/verdict?tier=${data.tier}&session=${data.sessionId}`;
