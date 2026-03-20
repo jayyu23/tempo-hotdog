@@ -28,8 +28,8 @@ Inspired by Jian Yang's SeeFood app from *Silicon Valley*.
 
 Hotdog Not Hotdog combines zero-knowledge proofs with Tempo's MPP (Micropayment Protocol) to build a tiered access system where:
 
-- **VIP domains** get half-price hotdogs ($0.50)
-- **Regular domains** pay standard price ($1.00)
+- **VIP domains** get half-price hotdogs ($0.05)
+- **Regular domains** pay standard price ($0.10)
 - **Blacklisted domains** get bounced at the door
 
 Users authenticate with Google, generate a ZK proof of their email domain, and buy hotdogs through a streaming payment channel — one signed voucher per hotdog. The server never learns your actual domain, only its Poseidon hash.

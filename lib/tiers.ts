@@ -6,14 +6,14 @@ export const TIER_CONFIG: Record<
 > = {
   vip: {
     label: "VIP",
-    pricePerHotdog: "500000",
-    displayPrice: "$0.50",
+    pricePerHotdog: "50000",
+    displayPrice: "$0.05",
     color: "#22c55e",
   },
   regular: {
     label: "Regular",
-    pricePerHotdog: "1000000",
-    displayPrice: "$1.00",
+    pricePerHotdog: "100000",
+    displayPrice: "$0.10",
     color: "#3b82f6",
   },
   blacklisted: {

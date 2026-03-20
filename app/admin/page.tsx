@@ -11,12 +11,12 @@ interface Rule {
 type Tier = "vip" | "regular" | "blacklisted";
 
 const TIERS: { key: Tier; label: string; icon: string; desc: string }[] = [
-  { key: "vip", label: "VIP", icon: "⭐", desc: "Half-price dogs ($0.50)" },
+  { key: "vip", label: "VIP", icon: "⭐", desc: "Half-price dogs ($0.05)" },
   {
     key: "regular",
     label: "REGULAR",
     icon: "🌭",
-    desc: "Standard price ($1.00)",
+    desc: "Standard price ($0.10)",
   },
   {
     key: "blacklisted",

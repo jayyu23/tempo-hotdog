@@ -43,16 +43,16 @@ export const ESCROW_ADDRESS = (process.env.TEMPO_ESCROW_ADDRESS ||
 export const TIP20_ADDRESS = (process.env.TEMPO_TIP20_ADDRESS ||
   USDC_ADDRESS) as `0x${string}`;
 
-// VIP: $0.50 per hotdog = 500000 base units (6 decimals)
-// Regular: $1.00 per hotdog = 1000000 base units
+// VIP: $0.05 per hotdog = 50000 base units (6 decimals)
+// Regular: $0.10 per hotdog = 100000 base units
 export const TIER_PRICES: Record<string, string> = {
-  vip: "500000",
-  regular: "1000000",
+  vip: "50000",
+  regular: "100000",
 };
 
 export const TIER_DISPLAY_PRICES: Record<string, string> = {
-  vip: "$0.50",
-  regular: "$1.00",
+  vip: "$0.05",
+  regular: "$0.10",
 };
 
 export function getTempoClient() {

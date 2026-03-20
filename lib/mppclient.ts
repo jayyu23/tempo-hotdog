@@ -30,7 +30,7 @@ export function createMppSession(
 
   return tempo.session({
     account,
-    maxDeposit: options?.maxDeposit ?? "50",
+    maxDeposit: options?.maxDeposit ?? "5",
     fetch: (input: RequestInfo | URL, init?: RequestInit) => {
       // Inject x-session-id header into every request
       const headers = new Headers(init?.headers);

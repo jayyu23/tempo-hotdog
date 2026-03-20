@@ -5,8 +5,8 @@ import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { createMppSession, type MppSessionManager } from "@/lib/mppclient";
 import { TIER_PRICES, TIER_DISPLAY_PRICES } from "@/lib/tempo";
-import { createPublicClient, http, formatUnits } from "viem";
-import { tempoMainnet } from "@/lib/tempo";
+import { createPublicClient, http, formatUnits, erc20Abi } from "viem";
+import { tempoMainnet, USDC_ADDRESS } from "@/lib/tempo";
 
 function StandContent() {
   const { ready, authenticated, logout } = usePrivy();
@@ -47,8 +47,11 @@ function StandContent() {
         chain: tempoMainnet,
         transport: http(),
       });
-      const raw = await client.getBalance({
-        address: embeddedWallet.address as `0x${string}`,
+      const raw = await client.readContract({
+        address: USDC_ADDRESS,
+        abi: erc20Abi,
+        functionName: "balanceOf",
+        args: [embeddedWallet.address as `0x${string}`],
       });
       setBalance(formatUnits(raw, 6));
     } catch (err) {
@@ -68,7 +71,7 @@ function StandContent() {
 
       // Create SDK session manager
       const session = createMppSession(embeddedWallet, sessionId, {
-        maxDeposit: "50",
+        maxDeposit: "0.5",
       });
       sessionRef.current = session;
 
@@ -292,6 +295,15 @@ function StandContent() {
           </div>
         </div>
 
+        {/* Channel opening note */}
+        {!sessionOpen && !error && (
+          <p className="text-pencil-scrawl text-xs text-center italic">
+            Privy will ask you to approve a transaction to open your payment channel.
+            The amount shown may look large — this is a display issue with custom tokens.
+            The actual deposit is $0.50 USDC.
+          </p>
+        )}
+
         {/* Hotdog grill display */}
         {hotdogCount > 0 && (
           <div className="flex flex-wrap justify-center gap-1 py-2">
@@ -312,6 +324,29 @@ function StandContent() {
                 +{hotdogCount - 20} more
               </span>
             )}
+          </div>
+        )}
+
+        {/* Deposit prompt when balance is zero */}
+        {balance !== null && Number(balance) === 0 && embeddedWallet?.address && (
+          <div className="bg-mustard/10 border-2 border-mustard/30 rounded-2xl p-5 space-y-3 text-center">
+            <p className="font-bangers text-lg text-mustard">DEPOSIT USDC TO GET STARTED</p>
+            <p className="text-napkin-gray text-sm">
+              Send USDC on Tempo to your wallet to open a payment channel:
+            </p>
+            <div className="flex items-center gap-2 bg-night-cart/50 rounded-xl p-3">
+              <code className="flex-1 text-xs text-bun-white break-all font-mono">
+                {embeddedWallet.address}
+              </code>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(embeddedWallet.address);
+                }}
+                className="shrink-0 px-3 py-1 bg-mustard/20 hover:bg-mustard/30 text-mustard text-xs font-bangers rounded-lg transition-colors cursor-pointer"
+              >
+                COPY
+              </button>
+            </div>
           </div>
         )}
 
@@ -356,14 +391,19 @@ function StandContent() {
           </button>
         </div>
 
-        {/* Wallet info */}
-        <div className="text-center text-xs text-pencil-scrawl font-mono space-y-1">
-          <p>
+        {/* Wallet info — collapsible */}
+        <details className="text-center text-xs text-pencil-scrawl font-mono">
+          <summary className="cursor-pointer hover:text-napkin-gray transition-colors">
             Wallet: {embeddedWallet?.address?.slice(0, 6)}...
-            {embeddedWallet?.address?.slice(-4)}
-          </p>
-          <p>Chain: Tempo (4217)</p>
-        </div>
+            {embeddedWallet?.address?.slice(-4)} | Tempo (4217)
+          </summary>
+          <div className="mt-2 p-3 bg-grill-smoke border border-grease-stain rounded-xl space-y-1 text-left break-all">
+            <p><span className="text-napkin-gray">Address:</span> {embeddedWallet?.address}</p>
+            <p><span className="text-napkin-gray">Chain:</span> Tempo Mainnet (4217)</p>
+            <p><span className="text-napkin-gray">USDC:</span> {USDC_ADDRESS}</p>
+            <p><span className="text-napkin-gray">Escrow:</span> 0x33b901018174DDabE4841042ab76ba85D4e24f25</p>
+          </div>
+        </details>
 
         {/* Sign out */}
         <div className="text-center">

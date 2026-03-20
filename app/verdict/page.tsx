@@ -2,12 +2,14 @@
 
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { usePrivy } from "@privy-io/react-auth";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
 import Image from "next/image";
 
 function VerdictContent() {
   const { logout } = usePrivy();
+  const { wallets } = useWallets();
   const searchParams = useSearchParams();
+  const embeddedWallet = wallets.find((w) => w.walletClientType === "privy");
   const tier = searchParams.get("tier") || "regular";
   const sessionId = searchParams.get("session") || "";
   const [showContent, setShowContent] = useState(false);
@@ -59,7 +61,7 @@ function VerdictContent() {
     vip: {
       title: "YOU MAY BUY CHEAP",
       subtitle: "VIP ACCESS GRANTED",
-      price: "$0.50/hotdog",
+      price: "$0.05/hotdog",
       memeImage: "/images/cheap-hotdog.jpg",
       textColor: "text-relish",
       glowClass: "neon-text-green",
@@ -72,7 +74,7 @@ function VerdictContent() {
     regular: {
       title: "YOU MAY BUY",
       subtitle: "REGULAR ACCESS",
-      price: "$1.00/hotdog",
+      price: "$0.10/hotdog",
       memeImage: "/images/hotdog.jpg",
       textColor: "text-mustard",
       glowClass: "neon-text",
@@ -221,6 +223,63 @@ function VerdictContent() {
                   {proofIsReal ? "DOWNLOAD (REAL)" : "DOWNLOAD (DEMO)"}
                 </button>
               </div>
+              <div className="border-t border-grease-stain" />
+              <details className="text-xs font-mono">
+                <summary className="cursor-pointer text-napkin-gray hover:text-bun-white transition-colors">
+                  View proof data
+                </summary>
+                <div className="mt-2 p-3 bg-night-cart/50 border border-grease-stain rounded-xl text-left text-pencil-scrawl break-all space-y-2 max-h-64 overflow-y-auto">
+                  {(() => {
+                    const raw = sessionStorage.getItem("zkProof");
+                    if (!raw) return <p>No proof data available</p>;
+                    const proof = JSON.parse(raw);
+                    return (
+                      <>
+                        <p className="text-napkin-gray font-bangers text-sm">Public Signals</p>
+                        <p><span className="text-napkin-gray">domainHash:</span> {proof.publicSignals?.[0]}</p>
+                        <p><span className="text-napkin-gray">nullifier:</span> {proof.publicSignals?.[1]}</p>
+                        <p><span className="text-napkin-gray">walletBinding:</span> {proof.publicSignals?.[2]}</p>
+                        <div className="border-t border-grease-stain/50 my-1" />
+                        <p className="text-napkin-gray font-bangers text-sm">Proof ({proof.proof?.protocol})</p>
+                        <p><span className="text-napkin-gray">pi_a:</span> {proof.proof?.pi_a?.slice(0, 2).map((v: string) => v.slice(0, 16) + "...").join(", ")}</p>
+                        <p><span className="text-napkin-gray">pi_b:</span> {proof.proof?.pi_b?.slice(0, 2).map((arr: string[]) => "[" + arr.map((v: string) => v.slice(0, 12) + "...").join(", ") + "]").join(", ")}</p>
+                        <p><span className="text-napkin-gray">pi_c:</span> {proof.proof?.pi_c?.slice(0, 2).map((v: string) => v.slice(0, 16) + "...").join(", ")}</p>
+                        <div className="border-t border-grease-stain/50 my-1" />
+                        <p className="text-napkin-gray font-bangers text-sm">Metadata</p>
+                        <p><span className="text-napkin-gray">method:</span> {proof.method}</p>
+                        <p><span className="text-napkin-gray">wallet:</span> {proof.walletAddress}</p>
+                        <p><span className="text-napkin-gray">real proof:</span> {proof.isReal ? "yes" : "no (demo)"}</p>
+                        <p><span className="text-napkin-gray">generated:</span> {new Date(proof.generatedAt).toLocaleString()}</p>
+                      </>
+                    );
+                  })()}
+                </div>
+              </details>
+              {embeddedWallet && (
+                <>
+                  <div className="border-t border-grease-stain" />
+                  <details className="font-mono">
+                    <summary className="cursor-pointer text-napkin-gray hover:text-bun-white transition-colors text-sm flex justify-between items-center">
+                      <span>Wallet</span>
+                      <span className="text-xs">{embeddedWallet.address.slice(0, 6)}...{embeddedWallet.address.slice(-4)}</span>
+                    </summary>
+                    <div className="mt-3 p-4 bg-night-cart/50 border border-grease-stain rounded-xl space-y-3 text-left">
+                      <div className="flex items-center gap-2">
+                        <code className="flex-1 text-sm text-bun-white break-all">
+                          {embeddedWallet.address}
+                        </code>
+                        <button
+                          onClick={() => navigator.clipboard.writeText(embeddedWallet.address)}
+                          className="shrink-0 px-3 py-1.5 bg-mustard/20 hover:bg-mustard/30 text-mustard text-xs font-bangers rounded-lg transition-colors cursor-pointer"
+                        >
+                          COPY
+                        </button>
+                      </div>
+                      <p className="text-pencil-scrawl text-xs">Tempo Mainnet (4217)</p>
+                    </div>
+                  </details>
+                </>
+              )}
             </div>
           )}
 
