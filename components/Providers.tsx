@@ -3,20 +3,19 @@
 import { PrivyProvider } from "@privy-io/react-auth";
 import { useTheme } from "./ThemeProvider";
 
-// Tempo Moderato (testnet) chain definition for Privy
+// Tempo Mainnet chain definition for Privy
 const tempoChain = {
-  id: 42431,
-  name: "Tempo Moderato",
-  network: "tempo-moderato",
+  id: 4217,
+  name: "Tempo",
+  network: "tempo",
   nativeCurrency: { name: "USD", symbol: "USD", decimals: 6 },
   rpcUrls: {
-    default: { http: ["https://rpc.moderato.tempo.xyz"] },
-    public: { http: ["https://rpc.moderato.tempo.xyz"] },
+    default: { http: ["https://rpc.tempo.xyz"] },
+    public: { http: ["https://rpc.tempo.xyz"] },
   },
   blockExplorers: {
-    default: { name: "Tempo Explorer", url: "https://explore.moderato.tempo.xyz" },
+    default: { name: "Tempo Explorer", url: "https://explore.tempo.xyz" },
   },
-  testnet: true,
 };
 
 export default function Providers({ children }: { children: React.ReactNode }) {

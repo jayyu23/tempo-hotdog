@@ -1,10 +1,46 @@
 /**
- * Client-side MPP session handler
- * Handles opening sessions, signing vouchers, and closing sessions
- * using Privy's embedded wallet for signing.
+ * Client-side MPP session handler.
+ *
+ * Provides two modes:
+ * 1. SDK mode (createMppSession) — uses mppx SessionManager for full
+ *    channel lifecycle with auto open/voucher/close.
+ * 2. Legacy mode (fetchChallenge, signVoucher, sendVoucher, closeSession) —
+ *    manual challenge/voucher/close against the old API routes (kept as fallback).
  */
 
 import type { ConnectedWallet } from "@privy-io/react-auth";
+import { tempo } from "mppx/client";
+import { privyToViemAccount } from "@/lib/privy-account";
+
+// The SessionManager type is the return type of tempo.session()
+export type MppSessionManager = ReturnType<typeof tempo.session>;
+
+// ─── SDK mode ────────────────────────────────────────────────────────────────
+
+/**
+ * Create a SessionManager that uses the mppx SDK to manage the full
+ * channel lifecycle against the unified /api/mpp route.
+ */
+export function createMppSession(
+  wallet: ConnectedWallet,
+  sessionId: string,
+  options?: { maxDeposit?: string }
+): MppSessionManager {
+  const account = privyToViemAccount(wallet);
+
+  return tempo.session({
+    account,
+    maxDeposit: options?.maxDeposit ?? "50",
+    fetch: (input: RequestInfo | URL, init?: RequestInit) => {
+      // Inject x-session-id header into every request
+      const headers = new Headers(init?.headers);
+      headers.set("x-session-id", sessionId);
+      return globalThis.fetch(input, { ...init, headers });
+    },
+  });
+}
+
+// ─── Legacy mode (fallback) ──────────────────────────────────────────────────
 
 interface SessionInfo {
   sessionId: string;
@@ -57,10 +93,9 @@ export async function signVoucher(
 ): Promise<string> {
   const provider = await wallet.getEthereumProvider();
 
-  // Tempo escrow address (testnet default)
   const escrowAddress =
     process.env.NEXT_PUBLIC_TEMPO_ESCROW_ADDRESS ||
-    "0xe1c4d3dce17bc111181ddf716f75bae49e61a336";
+    "0x33b901018174DDabE4841042ab76ba85D4e24f25";
 
   const typedData = {
     types: {
@@ -79,7 +114,7 @@ export async function signVoucher(
     domain: {
       name: "Tempo Stream Channel",
       version: "1",
-      chainId: 42431,
+      chainId: 4217,
       verifyingContract: escrowAddress,
     },
     message: {
@@ -136,7 +171,6 @@ export async function closeSession(
   channelId: string,
   finalAmount: string
 ): Promise<CloseResult> {
-  // Sign the final voucher for close
   const signature = await signVoucher(wallet, channelId, finalAmount);
 
   const res = await fetch("/api/mpp/close", {

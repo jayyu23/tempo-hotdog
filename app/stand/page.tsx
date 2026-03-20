@@ -1,17 +1,12 @@
 "use client";
 
 import { usePrivy, useWallets } from "@privy-io/react-auth";
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import {
-  fetchChallenge,
-  signVoucher,
-  sendVoucher,
-  closeSession,
-} from "@/lib/mppclient";
+import { createMppSession, type MppSessionManager } from "@/lib/mppclient";
 import { TIER_PRICES, TIER_DISPLAY_PRICES } from "@/lib/tempo";
 import { createPublicClient, http, formatUnits } from "viem";
-import { tempoTestnet } from "@/lib/tempo";
+import { tempoMainnet } from "@/lib/tempo";
 
 function StandContent() {
   const { ready, authenticated, logout } = usePrivy();
@@ -25,6 +20,7 @@ function StandContent() {
     () => sessionStorage.getItem("tier") || "regular"
   );
 
+  const sessionRef = useRef<MppSessionManager | null>(null);
   const [channelId, setChannelId] = useState<string>("");
   const [hotdogCount, setHotdogCount] = useState(0);
   const [cumulativeAmount, setCumulativeAmount] = useState("0");
@@ -48,7 +44,7 @@ function StandContent() {
     if (!embeddedWallet?.address) return;
     try {
       const client = createPublicClient({
-        chain: tempoTestnet,
+        chain: tempoMainnet,
         transport: http(),
       });
       const raw = await client.getBalance({
@@ -60,32 +56,40 @@ function StandContent() {
     }
   }, [embeddedWallet?.address]);
 
-  // Fetch balance on mount and after orders
   useEffect(() => {
     fetchBalance();
   }, [fetchBalance, hotdogCount]);
 
   const openSession = useCallback(async () => {
-    if (!sessionId || sessionOpen) return;
+    if (!sessionId || sessionOpen || !embeddedWallet) return;
 
     try {
       setError(null);
-      const challenge = await fetchChallenge(sessionId);
-      const channelBytes = new Uint8Array(32);
-      crypto.getRandomValues(channelBytes);
-      const chId =
-        "0x" +
-        Array.from(channelBytes)
-          .map((b) => b.toString(16).padStart(2, "0"))
-          .join("");
-      setChannelId(chId);
+
+      // Create SDK session manager
+      const session = createMppSession(embeddedWallet, sessionId, {
+        maxDeposit: "50",
+      });
+      sessionRef.current = session;
+
+      // Make initial fetch to get the 402 challenge and auto-open channel
+      const res = await session.fetch("/api/mpp");
+
+      if (session.channelId) {
+        setChannelId(session.channelId);
+      }
+
+      if (res.receipt) {
+        setSpent(res.receipt.spent);
+      }
+
       setSessionOpen(true);
-      console.log("Session opened:", challenge);
+      console.log("Session opened via SDK, channelId:", session.channelId);
     } catch (err) {
       console.error("Failed to open session:", err);
       setError(err instanceof Error ? err.message : "Failed to open session");
     }
-  }, [sessionId, sessionOpen]);
+  }, [sessionId, sessionOpen, embeddedWallet]);
 
   useEffect(() => {
     if (ready && !authenticated) {
@@ -93,38 +97,36 @@ function StandContent() {
       return;
     }
 
-    if (authenticated && sessionId && !sessionOpen) {
+    if (authenticated && sessionId && !sessionOpen && embeddedWallet) {
       openSession();
     }
-  }, [ready, authenticated, sessionId, sessionOpen, openSession]);
+  }, [ready, authenticated, sessionId, sessionOpen, embeddedWallet, openSession]);
 
   const orderHotdog = async () => {
-    if (!embeddedWallet || !channelId || isOrdering) return;
+    const session = sessionRef.current;
+    if (!session || !embeddedWallet || isOrdering) return;
 
     setIsOrdering(true);
     setError(null);
 
     try {
-      const newCumulative = (
-        BigInt(cumulativeAmount) + BigInt(pricePerHotdog)
-      ).toString();
+      // SDK session.fetch auto-sends the next voucher
+      const res = await session.fetch("/api/mpp");
 
-      const signature = await signVoucher(
-        embeddedWallet,
-        channelId,
-        newCumulative
-      );
+      if (session.channelId && !channelId) {
+        setChannelId(session.channelId);
+      }
 
-      const receipt = await sendVoucher(
-        sessionId,
-        channelId,
-        newCumulative,
-        signature
-      );
+      // Track hotdog count from cumulative amount
+      const newCumulative = session.cumulative;
+      const count = Number(newCumulative / BigInt(pricePerHotdog));
+      setHotdogCount(count);
+      setCumulativeAmount(newCumulative.toString());
 
-      setHotdogCount(receipt.hotdogCount);
-      setCumulativeAmount(receipt.cumulativeAmount);
-      setSpent(receipt.spent);
+      if (res.receipt) {
+        setSpent(res.receipt.spent);
+      }
+
       setJustOrdered(true);
       setTimeout(() => setJustOrdered(false), 500);
     } catch (err) {
@@ -136,22 +138,18 @@ function StandContent() {
   };
 
   const handleClose = async () => {
-    if (!embeddedWallet || isClosing) return;
+    const session = sessionRef.current;
+    if (!session || isClosing) return;
 
     setIsClosing(true);
     setError(null);
 
     try {
-      const result = await closeSession(
-        sessionId,
-        embeddedWallet,
-        channelId,
-        cumulativeAmount
-      );
+      const receipt = await session.close();
 
       setCloseResult({
-        txHash: result.txHash || undefined,
-        finalSpent: result.finalSpent,
+        txHash: receipt?.txHash || undefined,
+        finalSpent: receipt?.spent || spent,
       });
     } catch (err) {
       console.error("Close failed:", err);
@@ -197,7 +195,7 @@ function StandContent() {
             <div className="flex justify-between text-lg">
               <span className="text-napkin-gray font-bold">TOTAL</span>
               <span className="font-bold text-mustard">
-                {(Number(closeResult.finalSpent) / 1_000_000).toFixed(2)} TIP-20
+                ${(Number(closeResult.finalSpent) / 1_000_000).toFixed(2)} USDC
               </span>
             </div>
             {closeResult.txHash && (
@@ -273,7 +271,7 @@ function StandContent() {
           <div className="flex justify-between items-center">
             <span className="text-napkin-gray">Running tab</span>
             <span className="font-mono text-lg text-bun-white">
-              {(Number(spent) / 1_000_000).toFixed(2)} TIP-20
+              ${(Number(spent) / 1_000_000).toFixed(2)} USDC
             </span>
           </div>
           <div className="border-t border-dashed border-grease-stain" />
@@ -364,7 +362,7 @@ function StandContent() {
             Wallet: {embeddedWallet?.address?.slice(0, 6)}...
             {embeddedWallet?.address?.slice(-4)}
           </p>
-          <p>Chain: Tempo (42431)</p>
+          <p>Chain: Tempo (4217)</p>
         </div>
 
         {/* Sign out */}

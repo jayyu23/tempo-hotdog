@@ -14,23 +14,24 @@ export const tempoTestnet = defineChain({
   testnet: true,
 });
 
-// Tempo Mainnet (Presto) — chainId 4217
+// Tempo Mainnet — chainId 4217
 export const tempoMainnet = defineChain({
   id: 4217,
   name: "Tempo",
   nativeCurrency: { name: "USD", symbol: "USD", decimals: 6 },
   rpcUrls: {
-    default: { http: ["https://rpc.presto.tempo.xyz"] },
+    default: { http: ["https://rpc.tempo.xyz"] },
   },
   blockExplorers: {
     default: { name: "Tempo Explorer", url: "https://explore.tempo.xyz" },
   },
 });
 
-// Use testnet by default (matches PRD chainId 42431)
-export const tempoChain = tempoTestnet;
+// Use mainnet by default
+export const tempoChain = tempoMainnet;
 
-// Predeployed system contracts
+// Token addresses
+export const USDC_ADDRESS = "0x20C000000000000000000000b9537d11c60E8b50" as `0x${string}`;
 export const PATHUSD_ADDRESS = "0x20c0000000000000000000000000000000000000" as `0x${string}`;
 
 // TempoStreamChannel escrow contracts
@@ -38,9 +39,9 @@ export const ESCROW_ADDRESS_TESTNET = "0xe1c4d3dce17bc111181ddf716f75bae49e61a33
 export const ESCROW_ADDRESS_MAINNET = "0x33b901018174DDabE4841042ab76ba85D4e24f25" as `0x${string}`;
 
 export const ESCROW_ADDRESS = (process.env.TEMPO_ESCROW_ADDRESS ||
-  ESCROW_ADDRESS_TESTNET) as `0x${string}`;
+  ESCROW_ADDRESS_MAINNET) as `0x${string}`;
 export const TIP20_ADDRESS = (process.env.TEMPO_TIP20_ADDRESS ||
-  PATHUSD_ADDRESS) as `0x${string}`;
+  USDC_ADDRESS) as `0x${string}`;
 
 // VIP: $0.50 per hotdog = 500000 base units (6 decimals)
 // Regular: $1.00 per hotdog = 1000000 base units
@@ -58,7 +59,7 @@ export function getTempoClient() {
   return createPublicClient({
     chain: tempoChain,
     transport: http(
-      process.env.TEMPO_RPC_URL || "https://rpc.moderato.tempo.xyz"
+      process.env.TEMPO_RPC_URL || "https://rpc.tempo.xyz"
     ),
   });
 }
@@ -119,7 +120,7 @@ export const TEMPO_STREAM_CHANNEL_ABI = [
 export const VOUCHER_EIP712_DOMAIN = {
   name: "Tempo Stream Channel",
   version: "1",
-  chainId: 42431,
+  chainId: 4217,
   verifyingContract: ESCROW_ADDRESS,
 } as const;
 

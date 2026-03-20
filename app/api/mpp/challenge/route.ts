@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
         unitType: "hotdog",
         tier,
         channelConfig: {
-          chainId: 42431,
+          chainId: 4217,
           escrowContract: process.env.TEMPO_ESCROW_ADDRESS,
           token: process.env.TEMPO_TIP20_ADDRESS,
         },

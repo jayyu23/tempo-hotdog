@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
           account,
           chain: tempoChain,
           transport: http(
-            process.env.TEMPO_RPC_URL || "https://rpc.moderato.tempo.xyz"
+            process.env.TEMPO_RPC_URL || "https://rpc.tempo.xyz"
           ),
         });
 
