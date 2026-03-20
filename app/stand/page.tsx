@@ -71,7 +71,7 @@ function StandContent() {
 
       // Create SDK session manager
       const session = createMppSession(embeddedWallet, sessionId, {
-        maxDeposit: "0.5",
+        maxDeposit: "0.2",
       });
       sessionRef.current = session;
 
