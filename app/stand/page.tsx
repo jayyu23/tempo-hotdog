@@ -222,7 +222,7 @@ function StandContent() {
               BACK HOME
             </button>
             <button
-              onClick={logout}
+              onClick={() => logout().then(() => { window.location.href = "/"; })}
               className="flex-1 py-3 border-2 border-grease-stain hover:border-ketchup/50 rounded-xl text-sm text-napkin-gray font-bangers text-lg transition-all cursor-pointer"
             >
               SIGN OUT
@@ -368,7 +368,7 @@ function StandContent() {
         {/* Sign out */}
         <div className="text-center">
           <button
-            onClick={logout}
+            onClick={() => logout().then(() => { window.location.href = "/"; })}
             className="text-xs text-pencil-scrawl hover:text-napkin-gray underline underline-offset-2 transition-colors cursor-pointer"
           >
             Sign Out

@@ -198,7 +198,7 @@ export default function ProvePage() {
                 TRY AGAIN
               </button>
               <button
-                onClick={logout}
+                onClick={() => logout().then(() => { window.location.href = "/"; })}
                 className="px-8 py-3 border border-grease-stain hover:border-napkin-gray text-napkin-gray font-bangers text-xl rounded-xl transition-all cursor-pointer"
               >
                 SIGN OUT
@@ -224,7 +224,7 @@ export default function ProvePage() {
 
         {/* Sign out (always visible) */}
         <button
-          onClick={logout}
+          onClick={() => logout().then(() => { window.location.href = "/"; })}
           className="text-xs text-pencil-scrawl hover:text-napkin-gray underline underline-offset-2 transition-colors cursor-pointer"
         >
           Sign Out

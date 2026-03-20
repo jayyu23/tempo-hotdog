@@ -127,7 +127,7 @@ function VerdictContent() {
 
       {/* Sign out button */}
       <button
-        onClick={logout}
+        onClick={() => logout().then(() => { window.location.href = "/"; })}
         className="absolute top-4 right-4 z-20 px-4 py-2 border border-grease-stain hover:border-napkin-gray text-napkin-gray text-sm rounded-lg transition-all cursor-pointer backdrop-blur-sm bg-night-cart/50"
       >
         Sign Out
